@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(MaterialApp(
+    home: UserFormScreen(),
+  ));
+}
+
+class UserFormScreen extends StatefulWidget {
+  @override
+  State<UserFormScreen> createState() => _UserFormScreenState();
+}
+
+class _UserFormScreenState extends State<UserFormScreen> {
+  final formKey = GlobalKey<FormState>();
+
+  TextEditingController nameController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
+  String? selectedGender;
+
+  final List<String> genderOptions = [
+    'Male',
+    'Female',
+    'Non binary',
+    'Prefer not to say',
+    'Other'
+  ];
+
+  bool isHaitianPhoneNumber(String value) {
+    final digitsOnly = value.replaceAll(RegExp(r'\D'), '');
+    if (digitsOnly.length == 8 || digitsOnly.length == 11) {
+      if (digitsOnly.length == 8) {
+        return true;
+      } else if (digitsOnly.startsWith('509')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Fòmilè Itilizatè")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Non',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Tanpri antre non ou';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+
+              TextFormField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Nimewo Telefòn',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Tanpri antre nimewo w';
+                  }
+                  if (!isHaitianPhoneNumber(value)) {
+                    return 'Tanpri antre yon nimewo Ayiti ki valab';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Sèks',
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedGender,
+                items: genderOptions.map((gender) {
+                  return DropdownMenuItem(
+                    value: gender,
+                    child: Text(gender),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedGender = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Tanpri chwazi yon opsyon';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ResultScreen(
+                            name: nameController.text,
+                            phone: phoneController.text,
+                            gender: selectedGender!,
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Tanpri verifye fòm lan.")),
+                      );
+                    }
+                  },
+                  child: Text('Soumèt'),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ResultScreen extends StatelessWidget {
+  final String name;
+  final String phone;
+  final String gender;
+
+  const ResultScreen({
+    super.key,
+    required this.name,
+    required this.phone,
+    required this.gender,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Rezilta yo")),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Non: $name", style: TextStyle(fontSize: 18)),
+            SizedBox(height: 10),
+            Text("Nimewo Telefòn: $phone", style: TextStyle(fontSize: 18)),
+            SizedBox(height: 10),
+            Text("Sèks: $gender", style: TextStyle(fontSize: 18)),
+          ],
+        ),
+      ),
+    );
+  }
+}
